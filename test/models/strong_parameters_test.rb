@@ -6,11 +6,11 @@ class StrongParamsDemoTest < ActiveSupport::TestCase
     before do
       @hash = { 'title' => 'Test', 'body' => 'test body' }
     end
+
     describe 'completely unhandled params (i.e. no call to permit)' do
       before do
         @params = ActionController::Parameters.new @hash
       end
-
       it 'should raise error' do
         -> { Article.new @params }.must_raise ActiveModel::ForbiddenAttributesError
       end
@@ -46,13 +46,11 @@ class StrongParamsDemoTest < ActiveSupport::TestCase
         @attributes = @params.permit(:title, :body)
       end
       it 'new - be fine when all permitted params are valid model attributes' do
-        # NOTE THIS IS ONE WAY STRONG PARAMETERS ARE NORMALLY USED
         article = Article.new @attributes
         article.title.must_equal 'Test'
         article.body.must_equal 'test body'
       end
       it 'update - be fine when all permitted params are valid model attributes' do
-        # NOTE THIS IS ONE WAY STRONG PARAMETERS ARE NORMALLY USED
         article = Article.first
         article.update_attributes @attributes
         article.title.must_equal 'Test'
@@ -101,7 +99,6 @@ class StrongParamsDemoTest < ActiveSupport::TestCase
     end
   end
 
-  # create new article + create new comment
   describe 'nested attributes on comment (which belongs_to article)' do
     before do
       hash = {
@@ -155,7 +152,6 @@ class StrongParamsDemoTest < ActiveSupport::TestCase
       }
       @params = ActionController::Parameters.new hash
       @comment = comments(:thanks)
-      # asserts existing attribs are different
     end
     it 'shows how to permit nested params (correct way)' do
       attributes = @params.
@@ -194,18 +190,13 @@ class StrongParamsDemoTest < ActiveSupport::TestCase
       attributes.must_equal "title" => "Test"
       attributes.permit(:title, :comments_attributes).wont_include 'comments_attributes'
     end
-    # this is adding both models
     it 'shows how to permit nested parameters (correct way)' do
       attributes = @params.
         require(:article).
         permit(:title, comments_attributes: [:author, :content])[:comments_attributes].
           must_equal @hash['article']['comments_attributes']
     end
-    #  add a test updating article + updating 1 comment and adding 1 comment
   end
-
-
-
 
   describe 'update existing article, update existing comment + create new comment' do
     before do
@@ -223,74 +214,9 @@ class StrongParamsDemoTest < ActiveSupport::TestCase
     it 'shows how to permit nested parameters (correct way)' do
       attributes = @params.
         require(:article).
-        # NOTE rails has extra magic so we don't have to include the numbers 0, 1, etc here
         permit(:title, comments_attributes: [:author, :content])[:comments_attributes].
           must_equal @hash['article']['comments_attributes']
     end
-    #  add a test updating article + updating 1 comment and adding 1 comment
   end
 
 end
-
-__END__
-
-{"utf8" => "✓",
-"_method" => "patch",
-"authenticity_token" => "DEp5mBu/mBhdjmN0S+22qZZuGjh4+hW8z8MIVoOzJW8=",
-"article"=>{
-  "title" => "1st article",
-  "rank" => "3",
-  "body" => "as asdlfk jsadflk",
-  "comments_attributes"=>{
-    "0"=>{
-      "author" => "John Smith",
-      "content" => "Something by John 1",
-      "id" => "1"
-    },
-    "1"=>{
-      "author" => "Mary Cooper",
-      "content" => "Something by Mary 2",
-      "id" => "2"
-    }
-  }
-},
-"commit" => "Update Article",
-"action" => "update",
-"controller" => "articles",
-"id" => "1"}
-
-params = {
-"utf8" => "✓",
-"_method" => "patch",
-"authenticity_token" => "DEp5mBu/mBhdjmN0S+22qZZuGjh4+hW8z8MIVoOzJW8=",
-"publisher"=>{
-  "name" => "Wiley",
-  "contact" => "John Wiley",
-  "email" => "",
-  "books_attributes"=>{
-    "0"=>{
-      "id" => "2"
-      "isbn" => "1",
-      "title" => "Title 1",
-    },
-    "1"=>{
-      "id" => "3"
-      "isbn" => "2",
-      "title" => "Title 2",
-    },
-    "2"=>{
-      "id" => "4"},
-      "isbn" => "3",
-      "title" => "Title 3",
-    "3"=>
-    {
-      "id" => "5"
-      "isbn" => "4",
-      "title" => "Title 4",
-    }
-  }
-},
-"commit" => "Update Publisher",
-"action" => "update",
-"controller" => "publishers",
-"id" => "2"}
